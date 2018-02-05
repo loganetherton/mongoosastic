@@ -7,10 +7,11 @@ const Schema = mongoose.Schema
 const mongoosastic = require('../lib/mongoosastic')
 
 const BondSchema = new Schema({
-  name: String,
+  name: {type: String, es_type: 'keyword'},
   type: {
     type: String,
-    default: 'Other Bond'
+    default: 'Other Bond',
+    es_type: 'keyword'
   },
   price: Number
 })
@@ -24,30 +25,32 @@ describe('Query DSL', function () {
     mongoose.connect(config.mongoUrl, function () {
       Bond.remove(function () {
         config.deleteIndexIfExists(['bonds'], function () {
-          const bonds = [
-            new Bond({
-              name: 'Bail',
-              type: 'A',
-              price: 10000
-            }),
-            new Bond({
-              name: 'Commercial',
-              type: 'B',
-              price: 15000
-            }),
-            new Bond({
-              name: 'Construction',
-              type: 'B',
-              price: 20000
-            }),
-            new Bond({
-              name: 'Legal',
-              type: 'C',
-              price: 30000
+          Bond.createMapping(function () {
+            const bonds = [
+              new Bond({
+                name: 'Bail',
+                type: 'A',
+                price: 10000
+              }),
+              new Bond({
+                name: 'Commercial',
+                type: 'B',
+                price: 15000
+              }),
+              new Bond({
+                name: 'Construction',
+                type: 'B',
+                price: 20000
+              }),
+              new Bond({
+                name: 'Legal',
+                type: 'C',
+                price: 30000
+              })
+            ]
+            async.forEach(bonds, config.saveAndWaitIndex, function () {
+              setTimeout(done, config.INDEXING_TIMEOUT)
             })
-          ]
-          async.forEach(bonds, config.saveAndWaitIndex, function () {
-            setTimeout(done, config.INDEXING_TIMEOUT)
           })
         })
       })
@@ -173,19 +176,19 @@ describe('Query DSL', function () {
           res.aggregations.names.buckets.should.eql([
             {
               doc_count: 1,
-              key: 'bail'
+              key: 'Bail'
             },
             {
               doc_count: 1,
-              key: 'commercial'
+              key: 'Commercial'
             },
             {
               doc_count: 1,
-              key: 'construction'
+              key: 'Construction'
             },
             {
               doc_count: 1,
-              key: 'legal'
+              key: 'Legal'
             }
           ])
 
@@ -204,7 +207,7 @@ describe('Query DSL', function () {
       Bond.search({
         match: {
           name: {
-            query: 'comersial',
+            query: 'Comersial',
             fuzziness: 2
           }
         }
