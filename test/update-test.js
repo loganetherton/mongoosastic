@@ -126,7 +126,7 @@ describe('Updates', function () {
             })
             done()
           })
-        }, config.INDEXING_TIMEOUT * 2)
+        }, config.INDEXING_TIMEOUT)
       })
     })
   })
