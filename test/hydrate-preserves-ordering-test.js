@@ -20,27 +20,29 @@ describe('Hydrate with ES data', function () {
     mongoose.connect(config.mongoUrl, function () {
       RankModel.remove(function () {
         config.deleteIndexIfExists(['ranks'], function () {
-          // Quotes are from Terry Pratchett's Discworld books
-          const esResultTexts = [
-            new RankModel({
-              title: 'The colour of magic',
-              rank: 2
-            }),
-            new RankModel({
-              title: 'The Light Fantastic',
-              rank: 4
-            }),
-            new RankModel({
-              title: 'Equal Rites',
-              rank: 0
-            }),
-            new RankModel({
-              title: 'MorzartEstLà',
-              rank: -10.4
+          RankModel.createMapping(function () {
+            // Quotes are from Terry Pratchett's Discworld books
+            const esResultTexts = [
+              new RankModel({
+                title: 'The colour of magic',
+                rank: 2
+              }),
+              new RankModel({
+                title: 'The Light Fantastic',
+                rank: 4
+              }),
+              new RankModel({
+                title: 'Equal Rites',
+                rank: 0
+              }),
+              new RankModel({
+                title: 'MorzartEstLà',
+                rank: -10.4
+              })
+            ]
+            async.forEach(esResultTexts, config.saveAndWaitIndex, function () {
+              setTimeout(done, config.INDEXING_TIMEOUT)
             })
-          ]
-          async.forEach(esResultTexts, config.saveAndWaitIndex, function () {
-            setTimeout(done, config.INDEXING_TIMEOUT)
           })
         })
       })
